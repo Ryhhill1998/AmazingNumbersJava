@@ -11,13 +11,20 @@ public class Main {
             if (number <= 0) {
                 System.out.println("This number is not natural!");
             } else {
-                String parity = number % 2 == 0 ? "Even" : "Odd";
-                System.out.printf("This number is %s.\n", parity);
-                checkBuzzNumber(number);
+                System.out.println("Properties of " + number);
+                boolean numberIsEven = isEven(number);
+                System.out.printf("%-8seven: %b\n", "", numberIsEven);
+                System.out.printf("%-9sodd: %b\n", "", !numberIsEven);
+                System.out.printf("%-8sbuzz: %b\n", "", isBuzzNumber(number));
+                System.out.printf("%-8sduck: %b\n", "", isDuckNumber(number));
             }
         } catch (InputMismatchException e) {
             System.out.println("Not a number!");
         }
+    }
+
+    private static boolean isEven(int number) {
+        return number % 2 == 0;
     }
 
     private static boolean isDivisibleBy7(int number) {
@@ -34,21 +41,25 @@ public class Main {
         return divisibleBy7;
     }
 
-    private static void checkBuzzNumber(int number) {
-        boolean endsIn7 = number % 10 == 7;
-        boolean divisibleBy7 = isDivisibleBy7(number);
+    private static boolean endsIn7(int number) {
+        return number % 10 == 7;
+    }
 
-        System.out.println("It is" + (endsIn7 || divisibleBy7 ? "" : " not") + " a Buzz number.");
-        System.out.println("Explanation:");
+    private static boolean isBuzzNumber(int number) {
+        return endsIn7(number) || isDivisibleBy7(number);
+    }
 
-        if (endsIn7 && divisibleBy7) {
-            System.out.println(number + " is divisible by 7 and ends with 7.");
-        } else if (endsIn7) {
-            System.out.println(number + " ends with 7.");
-        } else if (divisibleBy7) {
-            System.out.println(number + " is divisible by 7.");
-        } else {
-            System.out.println(number + " is neither divisible by 7 nor does it end with 7");
+    private static boolean isDuckNumber(int number) {
+        boolean duckNumber = false;
+        String stringNumber = "" + number;
+
+        for (int i = 0; i < stringNumber.length(); i++) {
+            if (stringNumber.charAt(i) == '0') {
+                duckNumber = true;
+                break;
+            }
         }
+
+        return duckNumber;
     }
 }
