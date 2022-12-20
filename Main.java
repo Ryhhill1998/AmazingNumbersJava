@@ -1,4 +1,3 @@
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main {
@@ -9,8 +8,7 @@ public class Main {
 
         while (!quit) {
             printNewLine();
-            long request = getRequest();
-            quit = processRequest(request);
+            quit = getRequest();
         }
     }
 
@@ -27,48 +25,148 @@ public class Main {
     private static void printSupportedRequests() {
         System.out.println("Supported requests:" +
                 "\n\t- enter a natural number to know its properties" +
-                "\n\t- enter 0 to exit");
+                "\n\t- enter two natural numbers to obtain the properties of the list" +
+                "\n\t\t* the first parameter represents a starting number" +
+                "\n\t\t* the second parameter shows how many consecutive numbers are to be printed" +
+                "\n\t- separate the parameters with one space" +
+                "\n\t- enter 0 to exit.");
     }
 
-    private static long getRequest() {
-        long request = -1;
-
-        try {
-            System.out.print("Enter a request: ");
-            Scanner scanner = new Scanner(System.in);
-            request = scanner.nextLong();
-        } catch (InputMismatchException ignored) {
-        }
-
-        printNewLine();
-
-        return request;
-    }
-
-    private static boolean processRequest(long request) {
+    private static boolean getRequest() {
         boolean quit = false;
 
-        if (request == 0) {
+        System.out.print("Enter a request: ");
+        Scanner scanner = new Scanner(System.in);
+        String request = scanner.nextLine().trim();
+        printNewLine();
+
+        if (request.isEmpty()) {
+            printSupportedRequests();
+        } else {
+            try {
+                long[] parsedRequests = parseRequest(request);
+
+                if (parsedRequests.length == 2) {
+                    quit = processRequest(parsedRequests[0], parsedRequests[1]);
+                } else if (parsedRequests.length == 1) {
+                    quit = processRequest(parsedRequests[0], 0);
+                } else {
+                    System.out.println("Please do not enter more than two values!");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("please only enter numerical values!");
+            }
+        }
+
+        return quit;
+    }
+
+    private static long[] parseRequest(String request) {
+        String[] splitRequests = request.split(" ");
+        long[] parsedRequests = new long[splitRequests.length];
+
+        for (int i = 0; i < parsedRequests.length; i++) {
+            parsedRequests[i] = Long.parseLong(splitRequests[i]);
+        }
+
+        return parsedRequests;
+    }
+
+    private static boolean processRequest(long request, int type) {
+        boolean quit = false;
+
+        if (!firstParameterIsValid(request)) {
+            System.out.println("The first parameter should be a natural number or zero.");
+        } else if (request == 0) {
             System.out.println("Goodbye!");
             quit = true;
-        } else if (request < 0) {
-            System.out.println("The first parameter should be a natural number or zero.");
         } else {
             // display properties of number
-            displayProperties(request);
+            if (type == 0) {
+                displayProperties(request);
+            } else {
+                displayPropertiesList(request);
+            }
+        }
+
+        return quit;
+    }
+
+    private static boolean firstParameterIsValid(long parameter) {
+        return parameter >= 0;
+    }
+
+    private static boolean secondParameterIsValid(long parameter) {
+        return parameter > 0;
+    }
+
+    private static boolean processRequest(long request, long range) {
+        boolean quit = false;
+
+        if (!firstParameterIsValid(request)) {
+            System.out.println("The first parameter should be a natural number or zero.");
+        } else if (!secondParameterIsValid(range)) {
+            System.out.println("The second parameter should be a natural number.");
+        } else {
+            request--;
+
+            for (int i = 0; i < range; i++) {
+                quit = processRequest(++request, 1);
+            }
         }
 
         return quit;
     }
 
     private static void displayProperties(long number) {
+        int displacement = 12;
         System.out.printf("Properties of %,d\n", number);
+        System.out.printf("%" + (displacement - "buzz".length()) + "sbuzz: %b\n", "", isBuzzNumber(number));
+        System.out.printf("%" + (displacement - "duck".length()) + "sduck: %b\n", "", isDuckNumber(number));
+        System.out.printf("%" + (displacement - "palindromic".length()) + "spalindromic: %b\n", "", isPalindrome(number));
+        System.out.printf("%" + (displacement - "gapful".length()) + "sgapful: %b\n", "", isGapful(number));
         boolean numberIsEven = isEven(number);
-        System.out.printf("%-8seven: %b\n", "", numberIsEven);
-        System.out.printf("%-9sodd: %b\n", "", !numberIsEven);
-        System.out.printf("%-8sbuzz: %b\n", "", isBuzzNumber(number));
-        System.out.printf("%-8sduck: %b\n", "", isDuckNumber(number));
-        System.out.printf("%-1spalindromic: %b\n", "", isPalindrome(number));
+        System.out.printf("%" + (displacement - "even".length()) + "seven: %b\n", "", numberIsEven);
+        System.out.printf("%" + (displacement - "odd".length()) + "sodd: %b\n", "", !numberIsEven);
+    }
+
+    private static void displayPropertiesList(long number) {
+        StringBuilder description = new StringBuilder();
+
+        if (isBuzzNumber(number)) {
+            description.append("buzz");
+        }
+
+        if (isDuckNumber(number)) {
+            addCommaIfRequired(description);
+            description.append("duck");
+        }
+
+        if (isPalindrome(number)) {
+            addCommaIfRequired(description);
+            description.append("palindrome");
+        }
+
+        if (isGapful(number)) {
+            addCommaIfRequired(description);
+            description.append("gapful");
+        }
+
+        addCommaIfRequired(description);
+
+        if (isEven(number)) {
+            description.append("even");
+        } else {
+            description.append("odd");
+        }
+
+        System.out.printf("%16d is %s\n", number, description);
+    }
+
+    private static void addCommaIfRequired(StringBuilder stringBuilder) {
+        if (!stringBuilder.isEmpty()) {
+            stringBuilder.append(", ");
+        }
     }
 
     private static boolean isEven(long number) {
@@ -129,5 +227,28 @@ public class Main {
         }
 
         return palindrome;
+    }
+
+    private static boolean isGapful(long number) {
+        if ((number + "").length() < 3) {
+            return false;
+        }
+
+        boolean gapful = false;
+
+        long firstDigit = number;
+        long lastDigit = number % 10;
+
+        while (firstDigit >= 10) {
+            firstDigit /= 10;
+        }
+
+        long concatenation = Long.parseLong("" + firstDigit + lastDigit);
+
+        if (number % concatenation == 0) {
+            gapful = true;
+        }
+
+        return gapful;
     }
 }
