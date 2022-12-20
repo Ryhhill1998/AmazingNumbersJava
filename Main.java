@@ -1,6 +1,9 @@
 import java.util.Scanner;
 
 public class Main {
+
+    private static final String[] PROPERTIES = {"BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "EVEN", "ODD"};
+
     public static void main(String[] args) {
         printWelcome();
 
@@ -23,13 +26,14 @@ public class Main {
     }
 
     private static void printSupportedRequests() {
-        System.out.println("Supported requests:" +
-                "\n\t- enter a natural number to know its properties" +
-                "\n\t- enter two natural numbers to obtain the properties of the list" +
-                "\n\t\t* the first parameter represents a starting number" +
-                "\n\t\t* the second parameter shows how many consecutive numbers are to be printed" +
-                "\n\t- separate the parameters with one space" +
-                "\n\t- enter 0 to exit.");
+        System.out.println("Supported requests:\n" +
+                "\t- enter a natural number to know its properties;\n" +
+                "\t- enter two natural numbers to obtain the properties of the list:\n" +
+                "\t\t* the first parameter represents a starting number;\n" +
+                "\t\t* the second parameters show how many consecutive numbers are to be processed;\n" +
+                "\t- two natural numbers and a property to search for;\n" +
+                "\t- separate the parameters with one space;\n" +
+                "\t- enter 0 to exit.");
     }
 
     private static boolean getRequest() {
@@ -44,48 +48,50 @@ public class Main {
             printSupportedRequests();
         } else {
             try {
-                long[] parsedRequests = parseRequest(request);
+                String[] splitRequests = request.split(" ");
+                int length = splitRequests.length;
 
-                if (parsedRequests.length == 2) {
-                    quit = processRequest(parsedRequests[0], parsedRequests[1]);
-                } else if (parsedRequests.length == 1) {
-                    quit = processRequest(parsedRequests[0], 0);
+                if (length > 3) {
+                    System.out.println("Please enter no more than 3 values!");
                 } else {
-                    System.out.println("Please do not enter more than two values!");
+                    long number = Long.parseLong(splitRequests[0]);
+
+                    if (!firstParameterIsValid(number)) {
+                        System.out.println("The first parameter should be a natural number or zero.");
+                    } else if (number == 0) {
+                        System.out.println("Goodbye!");
+                        quit = true;
+                    } else if (length == 1) {
+                        displayProperties(number);
+                    } else {
+                        int count = Integer.parseInt(splitRequests[1]);
+
+                        if (!secondParameterIsValid(count)) {
+                            System.out.println("The second parameter should be a natural number.");
+                        }
+
+                        if (length == 2) {
+                            for (long i = number; i < number + count; i++) {
+                                displayPropertiesList(i);
+                            }
+                        } else {
+                            String property = splitRequests[2].toUpperCase();
+
+                            if (!thirdParameterIsValid(property)) {
+                                System.out.println("The property [" + property + "] is wrong." +
+                                        "\nAvailable properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, EVEN, ODD]");
+                            } else {
+                                long[] foundNumbers = findNumbersWithProperty(number, count, property);
+
+                                for (int i = 0; i < foundNumbers.length; i++) {
+                                    displayPropertiesList(foundNumbers[i]);
+                                }
+                            }
+                        }
+                    }
                 }
             } catch (NumberFormatException e) {
                 System.out.println("please only enter numerical values!");
-            }
-        }
-
-        return quit;
-    }
-
-    private static long[] parseRequest(String request) {
-        String[] splitRequests = request.split(" ");
-        long[] parsedRequests = new long[splitRequests.length];
-
-        for (int i = 0; i < parsedRequests.length; i++) {
-            parsedRequests[i] = Long.parseLong(splitRequests[i]);
-        }
-
-        return parsedRequests;
-    }
-
-    private static boolean processRequest(long request, int type) {
-        boolean quit = false;
-
-        if (!firstParameterIsValid(request)) {
-            System.out.println("The first parameter should be a natural number or zero.");
-        } else if (request == 0) {
-            System.out.println("Goodbye!");
-            quit = true;
-        } else {
-            // display properties of number
-            if (type == 0) {
-                displayProperties(request);
-            } else {
-                displayPropertiesList(request);
             }
         }
 
@@ -100,22 +106,17 @@ public class Main {
         return parameter > 0;
     }
 
-    private static boolean processRequest(long request, long range) {
-        boolean quit = false;
+    private static boolean thirdParameterIsValid(String parameter) {
+        boolean valid = false;
 
-        if (!firstParameterIsValid(request)) {
-            System.out.println("The first parameter should be a natural number or zero.");
-        } else if (!secondParameterIsValid(range)) {
-            System.out.println("The second parameter should be a natural number.");
-        } else {
-            request--;
-
-            for (int i = 0; i < range; i++) {
-                quit = processRequest(++request, 1);
+        for (int i = 0; i < PROPERTIES.length; i++) {
+            if (PROPERTIES[i].equals(parameter)) {
+                valid = true;
+                break;
             }
         }
 
-        return quit;
+        return valid;
     }
 
     private static void displayProperties(long number) {
@@ -125,6 +126,7 @@ public class Main {
         System.out.printf("%" + (displacement - "duck".length()) + "sduck: %b\n", "", isDuckNumber(number));
         System.out.printf("%" + (displacement - "palindromic".length()) + "spalindromic: %b\n", "", isPalindrome(number));
         System.out.printf("%" + (displacement - "gapful".length()) + "sgapful: %b\n", "", isGapful(number));
+        System.out.printf("%" + (displacement - "spy".length()) + "sspy: %b\n", "", isSpy(number));
         boolean numberIsEven = isEven(number);
         System.out.printf("%" + (displacement - "even".length()) + "seven: %b\n", "", numberIsEven);
         System.out.printf("%" + (displacement - "odd".length()) + "sodd: %b\n", "", !numberIsEven);
@@ -152,6 +154,11 @@ public class Main {
             description.append("gapful");
         }
 
+        if (isSpy(number)) {
+            addCommaIfRequired(description);
+            description.append("spy");
+        }
+
         addCommaIfRequired(description);
 
         if (isEven(number)) {
@@ -160,7 +167,7 @@ public class Main {
             description.append("odd");
         }
 
-        System.out.printf("%16d is %s\n", number, description);
+        System.out.printf("%,16d is %s\n", number, description);
     }
 
     private static void addCommaIfRequired(StringBuilder stringBuilder) {
@@ -272,16 +279,16 @@ public class Main {
         return spy;
     }
 
-    private static long[] findNumbersWithProperty(long start, long count, String property) {
+    private static long[] findNumbersWithProperty(long start, int count, String property) {
         return switch (property) {
-            case "buzz" -> findBuzzNumbers(start, count);
-            case "duck" -> findDuckNumbers(start, count);
-            case "palindromic" -> findPalindromicNumbers(start, count);
-            case "gapful" -> findGapfulNumbers(start, count);
-            case "spy" -> findSpyNumbers(start, count);
-            case "even" -> findEvenNumbers(start, count);
-            case "odd" -> findOddNumbers(start, count);
-            default -> new long[(int) count];
+            case "BUZZ" -> findBuzzNumbers(start, count);
+            case "DUCK" -> findDuckNumbers(start, count);
+            case "PALINDROMIC" -> findPalindromicNumbers(start, count);
+            case "GAPFUL" -> findGapfulNumbers(start, count);
+            case "SPY" -> findSpyNumbers(start, count);
+            case "EVEN" -> findEvenNumbers(start, count);
+            case "ODD" -> findOddNumbers(start, count);
+            default -> null;
         };
     }
 
