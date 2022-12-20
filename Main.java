@@ -11,7 +11,14 @@ public class Main {
 
         while (!quit) {
             printNewLine();
-            quit = getRequest();
+            String request = getRequest();
+
+            try {
+                quit = processRequest(request);
+            } catch (NumberFormatException e) {
+                System.out.println("Make sure that parameters 1 and 2 are natural numbers and " +
+                        "any further parameters are strings.");
+            }
         }
     }
 
@@ -36,66 +43,110 @@ public class Main {
                 "\t- enter 0 to exit.");
     }
 
-    private static boolean getRequest() {
-        boolean quit = false;
-
+    private static String getRequest() {
         System.out.print("Enter a request: ");
         Scanner scanner = new Scanner(System.in);
-        String request = scanner.nextLine().trim();
-        printNewLine();
+        return scanner.nextLine().trim();
+    }
+
+    private static boolean processRequest(String request) {
+        boolean quit = false;
 
         if (request.isEmpty()) {
             printSupportedRequests();
         } else {
-            try {
-                String[] splitRequests = request.split(" ");
-                int length = splitRequests.length;
+            String[] splitRequests = request.split(" ");
+            int length = splitRequests.length;
 
-                if (length > 3) {
-                    System.out.println("Please enter no more than 3 values!");
+            if (length == 1) {
+                if (splitRequests[0].equals("0")) {
+                    quit = true;
                 } else {
-                    long number = Long.parseLong(splitRequests[0]);
-
-                    if (!firstParameterIsValid(number)) {
-                        System.out.println("The first parameter should be a natural number or zero.");
-                    } else if (number == 0) {
-                        System.out.println("Goodbye!");
-                        quit = true;
-                    } else if (length == 1) {
-                        displayProperties(number);
-                    } else {
-                        int count = Integer.parseInt(splitRequests[1]);
-
-                        if (!secondParameterIsValid(count)) {
-                            System.out.println("The second parameter should be a natural number.");
-                        }
-
-                        if (length == 2) {
-                            for (long i = number; i < number + count; i++) {
-                                displayPropertiesList(i);
-                            }
-                        } else {
-                            String property = splitRequests[2].toUpperCase();
-
-                            if (!thirdParameterIsValid(property)) {
-                                System.out.println("The property [" + property + "] is wrong." +
-                                        "\nAvailable properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, EVEN, ODD]");
-                            } else {
-                                long[] foundNumbers = findNumbersWithProperty(number, count, property);
-
-                                for (int i = 0; i < foundNumbers.length; i++) {
-                                    displayPropertiesList(foundNumbers[i]);
-                                }
-                            }
-                        }
-                    }
+                    processSingleRequest(splitRequests);
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("please only enter numerical values!");
+            } else if (length == 2) {
+                processRangeRequest(splitRequests);
+            } else {
+                processSearch(splitRequests);
             }
         }
 
         return quit;
+    }
+
+    private static void processSingleRequest(String[] request) {
+        long number = Long.parseLong(request[0]);
+
+        if (parametersAreValid(number)) {
+            displayProperties(number);
+        }
+    }
+
+    private static void processRangeRequest(String[] parameters) {
+        long number = Long.parseLong(parameters[0]);
+        int count = Integer.parseInt(parameters[1]);
+
+        if (parametersAreValid(number, count)) {
+            for (long i = number; i < number + count; i++) {
+                displayPropertiesList(i);
+            }
+        }
+    }
+
+    private static void processSearch(String[] searchParameters) {
+        long number = Long.parseLong(searchParameters[0]);
+        int count = Integer.parseInt(searchParameters[1]);
+        String property = searchParameters[2].toUpperCase();
+
+        if (parametersAreValid(number, count, property)) {
+            long[] foundNumbers = findNumbersWithProperty(number, count, property);
+
+            for (int i = 0; i < foundNumbers.length; i++) {
+                displayPropertiesList(foundNumbers[i]);
+            }
+        }
+    }
+
+    private static boolean parametersAreValid(long parameter) {
+        boolean valid = true;
+
+        if (!firstParameterIsValid(parameter)) {
+            System.out.println("The first parameter should be a natural number or zero.");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    private static boolean parametersAreValid(long parameter1, int parameter2) {
+        boolean valid = false;
+
+        if (!firstParameterIsValid(parameter1)) {
+            System.out.println("The first parameter should be a natural number or zero.");
+        } else if (!secondParameterIsValid(parameter2)) {
+            System.out.println("The second parameter should be a natural number.");
+        } else {
+            valid = true;
+        }
+
+        return valid;
+    }
+
+    private static boolean parametersAreValid(long parameter1, int parameter2, String parameter3) {
+        boolean valid = false;
+
+        if (!firstParameterIsValid(parameter1)) {
+            System.out.println("The first parameter should be a natural number or zero.");
+        } else if (!secondParameterIsValid(parameter2)) {
+            System.out.println("The second parameter should be a natural number.");
+        } else if (!thirdParameterIsValid(parameter3)) {
+            System.out.println("The property [" + parameter3 + "] is wrong." +
+                    "\nAvailable properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, EVEN, ODD]");
+        } else {
+            valid = true;
+        }
+
+        return valid;
     }
 
     private static boolean firstParameterIsValid(long parameter) {
