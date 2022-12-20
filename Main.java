@@ -251,4 +251,150 @@ public class Main {
 
         return gapful;
     }
+
+    private static boolean isSpy(long number) {
+        boolean spy = false;
+
+        long digitSum = 0;
+        long digitProduct = 1;
+
+        while (number > 0) {
+            long lastDigit = number % 10;
+            digitSum += lastDigit;
+            digitProduct *= lastDigit;
+            number /= 10;
+        }
+
+        if (digitSum == digitProduct) {
+            spy = true;
+        }
+
+        return spy;
+    }
+
+    private static long[] findNumbersWithProperty(long start, long count, String property) {
+        return switch (property) {
+            case "buzz" -> findBuzzNumbers(start, count);
+            case "duck" -> findDuckNumbers(start, count);
+            case "palindromic" -> findPalindromicNumbers(start, count);
+            case "gapful" -> findGapfulNumbers(start, count);
+            case "spy" -> findSpyNumbers(start, count);
+            case "even" -> findEvenNumbers(start, count);
+            case "odd" -> findOddNumbers(start, count);
+            default -> new long[(int) count];
+        };
+    }
+
+    private static long[] findBuzzNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (isBuzzNumber(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+            start++;
+        }
+
+        return numbers;
+    }
+
+    private static long[] findDuckNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (isDuckNumber(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+            start++;
+        }
+
+        return numbers;
+    }
+
+    private static long[] findPalindromicNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (isPalindrome(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+            start++;
+        }
+
+        return numbers;
+    }
+
+    private static long[] findGapfulNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (isGapful(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+            start++;
+        }
+
+        return numbers;
+    }
+
+    private static long[] findSpyNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (isSpy(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+
+            start++;
+        }
+
+        return numbers;
+    }
+
+    private static long[] findEvenNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (isEven(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+            start++;
+        }
+
+        return numbers;
+    }
+
+    private static long[] findOddNumbers(long start, long count) {
+        long[] numbers = new long[(int) count];
+        int i = 0;
+
+        while (count > 0) {
+            if (!isEven(start)) {
+                numbers[i] = start;
+                count--;
+                i++;
+            }
+            start++;
+        }
+
+        return numbers;
+    }
 }
