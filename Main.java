@@ -1,9 +1,12 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
 
-    private static final String[] PROPERTIES = {"BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "EVEN", "ODD"};
+    private static final String[] PROPERTIES = {
+            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "EVEN", "ODD"
+    };
 
     public static void main(String[] args) {
         printWelcome();
@@ -39,7 +42,7 @@ public class Main {
                 "\t- enter two natural numbers to obtain the properties of the list:\n" +
                 "\t\t* the first parameter represents a starting number;\n" +
                 "\t\t* the second parameters show how many consecutive numbers are to be processed;\n" +
-                "\t- two natural numbers and a property to search for;\n" +
+                "\t- two natural numbers and two properties to search for;\n" +
                 "\t- separate the parameters with one space;\n" +
                 "\t- enter 0 to exit.");
     }
@@ -94,11 +97,11 @@ public class Main {
         }
     }
 
-    private static String[] getSearchProperties(String[] searchParameters) {
-        String[] properties = new String[searchParameters.length - 2];
+    private static ArrayList<String> getSearchProperties(String[] searchParameters) {
+        ArrayList<String> properties = new ArrayList<>();
 
         for (int i = 2; i < searchParameters.length; i++) {
-            properties[i - 2] = searchParameters[i];
+            properties.add(searchParameters[i].toUpperCase());
         }
 
         return properties;
@@ -108,16 +111,47 @@ public class Main {
         long number = Long.parseLong(searchParameters[0]);
         int count = Integer.parseInt(searchParameters[1]);
 
-        String[] properties = getSearchProperties(searchParameters);
-        String property = searchParameters[2].toUpperCase();
+        ArrayList<String> properties = getSearchProperties(searchParameters);
 
-        if (parametersAreValid(number, count, properties)) {
-            ArrayList<Long> foundNumbers = findNumbersWithProperty(number, count, property);
+        if (parametersAreValid(number, count, properties) && !searchHasMutuallyExclusiveParameters(properties)) {
+            ArrayList<Long> foundNumbers = findNumbersWithProperties(number, count, properties);
 
             for (Long n : foundNumbers) {
                 displayPropertiesList(n);
             }
         }
+    }
+
+    private static boolean searchContainsEvenAndOdd(ArrayList<String> parameters) {
+        return parameters.contains("EVEN") && parameters.contains("ODD");
+    }
+
+    private static boolean searchContainsDuckAndSpy(ArrayList<String> parameters) {
+        return parameters.contains("DUCK") && parameters.contains("SPY");
+    }
+
+    private static boolean searchContainsSquareAndSunny(ArrayList<String> parameters) {
+        return parameters.contains("SUNNY") && parameters.contains("SQUARE");
+    }
+
+    private static boolean searchHasMutuallyExclusiveParameters(ArrayList<String> parameters) {
+        boolean hasMutuallyExclusiveParameters = false;
+
+        if (searchContainsEvenAndOdd(parameters)) {
+            System.out.println("The request contains mutually exclusive properties: [EVEN, ODD]");
+            System.out.println("There are no numbers with these properties.");
+            hasMutuallyExclusiveParameters = true;
+        } else if (searchContainsDuckAndSpy(parameters)) {
+            System.out.println("The request contains mutually exclusive properties: [DUCK, SPY]");
+            System.out.println("There are no numbers with these properties.");
+            hasMutuallyExclusiveParameters = true;
+        } else if (searchContainsSquareAndSunny(parameters)) {
+            System.out.println("The request contains mutually exclusive properties: [SQUARE, SUNNY]");
+            System.out.println("There are no numbers with these properties.");
+            hasMutuallyExclusiveParameters = true;
+        }
+
+        return hasMutuallyExclusiveParameters;
     }
 
     private static boolean parametersAreValid(long parameter) {
@@ -145,7 +179,7 @@ public class Main {
         return valid;
     }
 
-    private static boolean parametersAreValid(long parameter1, int parameter2, String[] parameter3) {
+    private static boolean parametersAreValid(long parameter1, int parameter2, ArrayList<String> parameter3) {
         boolean valid = true;
 
         if (!firstParameterIsValid(parameter1)) {
@@ -155,14 +189,27 @@ public class Main {
             System.out.println("The second parameter should be a natural number.");
             valid = false;
         } else {
-            for (int i = 0; i < parameter3.length; i++) {
-                String p = parameter3[i].toUpperCase();
+            ArrayList<String> invalidParameters = new ArrayList<>();
+            for (int i = 0; i < parameter3.size(); i++) {
+                String p = parameter3.get(i);
                 if (!thirdParameterIsValid(p)) {
-                    System.out.println("The property [" + p + "] is wrong." +
-                            "\nAvailable properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, EVEN, ODD]");
+                    invalidParameters.add(p);
                     valid = false;
-                    break;
                 }
+            }
+            if (!valid) {
+                StringBuilder feedback = new StringBuilder("The propert");
+                feedback.append(invalidParameters.size() == 1 ? "y" : "ies")
+                        .append(" [").append(invalidParameters.get(0));
+
+                for (int i = 1; i < invalidParameters.size(); i++) {
+                    feedback.append(", ").append(invalidParameters.get(i));
+                }
+
+                feedback.append("] ").append(invalidParameters.size() == 1 ? "is" : "are").append(" wrong.");
+
+                System.out.println(feedback +
+                        "\nAvailable properties: " + Arrays.toString(PROPERTIES));
             }
         }
 
@@ -198,9 +245,10 @@ public class Main {
         System.out.printf("%" + (displacement - "palindromic".length()) + "spalindromic: %b\n", "", isPalindrome(number));
         System.out.printf("%" + (displacement - "gapful".length()) + "sgapful: %b\n", "", isGapful(number));
         System.out.printf("%" + (displacement - "spy".length()) + "sspy: %b\n", "", isSpy(number));
-        boolean numberIsEven = isEven(number);
-        System.out.printf("%" + (displacement - "even".length()) + "seven: %b\n", "", numberIsEven);
-        System.out.printf("%" + (displacement - "odd".length()) + "sodd: %b\n", "", !numberIsEven);
+        System.out.printf("%" + (displacement - "square".length()) + "ssquare: %b\n", "", isPerfectSquare(number));
+        System.out.printf("%" + (displacement - "sunny".length()) + "ssunny: %b\n", "", isSunny(number));
+        System.out.printf("%" + (displacement - "even".length()) + "seven: %b\n", "", isEven(number));
+        System.out.printf("%" + (displacement - "odd".length()) + "sodd: %b\n", "", isOdd(number));
     }
 
     private static void displayPropertiesList(long number) {
@@ -230,6 +278,16 @@ public class Main {
             description.append("spy");
         }
 
+        if (isPerfectSquare(number)) {
+            addCommaIfRequired(description);
+            description.append("square");
+        }
+
+        if (isSunny(number)) {
+            addCommaIfRequired(description);
+            description.append("sunny");
+        }
+
         addCommaIfRequired(description);
 
         if (isEven(number)) {
@@ -249,6 +307,10 @@ public class Main {
 
     private static boolean isEven(long number) {
         return number % 2 == 0;
+    }
+
+    private static boolean isOdd(long number) {
+        return !isEven(number);
     }
 
     private static boolean isDivisibleBy7(long number) {
@@ -359,278 +421,67 @@ public class Main {
         return isPerfectSquare(number + 1);
     }
 
-    private static ArrayList<Long> findNumbersWithProperties(long start, int count, String[] properties) {
-        ArrayList<Long> foundNumbers = findNumbersWithProperty(start, count, properties[0]);
+    private static ArrayList<Long> findNumbersWithProperties(long start, int count, ArrayList<String> properties) {
+        ArrayList<Long> foundNumbers = new ArrayList<>();
 
-        for (int i = 1; i < properties.length; i++) {
-            foundNumbers = filterNumbersByProperty(foundNumbers, properties[i]);
+        while (count > 0) {
+            if (numberHasAllProperties(start, properties)) {
+                foundNumbers.add(start);
+                count--;
+            }
+
+            start++;
         }
 
         return foundNumbers;
     }
 
-    private static ArrayList<Long> findNumbersWithProperty(long start, int count, String property) {
-        ArrayList<Long> foundNumbers;
+    private static boolean numberHasAllProperties(long number, ArrayList<String> properties) {
+        boolean hasAllProperties = true;
+
+        for (int i = 0; i < properties.size(); i++) {
+            if (!numberHasProperty(number, properties.get(i))) {
+                hasAllProperties = false;
+                break;
+            }
+        }
+
+        return hasAllProperties;
+    }
+
+    private static boolean numberHasProperty(long number, String property) {
+        boolean hasProperty = false;
 
         switch (property) {
             case "BUZZ":
-                foundNumbers = findBuzzNumbers(start, count);
+                hasProperty = isBuzzNumber(number);
                 break;
             case "DUCK":
-                foundNumbers = findDuckNumbers(start, count);
+                hasProperty = isDuckNumber(number);
                 break;
             case "PALINDROMIC":
-                foundNumbers = findPalindromicNumbers(start, count);
+                hasProperty = isPalindrome(number);
                 break;
             case "GAPFUL":
-                foundNumbers = findGapfulNumbers(start, count);
+                hasProperty = isGapful(number);
                 break;
             case "SPY":
-                foundNumbers = findSpyNumbers(start, count);
+                hasProperty = isSpy(number);
                 break;
-//            case "SQUARE":
-//                foundNumbers = f(start, count);
-//                break;
-//            case "SUNNY":
-//                foundNumbers = findBuzzNumbers(start, count);
-//                break;
+            case "SQUARE":
+                hasProperty = isPerfectSquare(number);
+                break;
+            case "SUNNY":
+                hasProperty = isSunny(number);
+                break;
             case "EVEN":
-                foundNumbers = findEvenNumbers(start, count);
+                hasProperty = isEven(number);
                 break;
             case "ODD":
-                foundNumbers = findOddNumbers(start, count);
+                hasProperty = isOdd(number);
                 break;
-            default:
-                foundNumbers = null;
         }
 
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> filterNumbersByProperty(ArrayList<Long> numbers, String property) {
-        ArrayList<Long> filteredNumbers;
-
-        switch (property) {
-            case "BUZZ":
-                filteredNumbers = filterBuzzNumbers(numbers);
-                break;
-            case "DUCK":
-                filteredNumbers = filterDuckNumbers(numbers);
-                break;
-            case "PALINDROMIC":
-                filteredNumbers = filterPalindromicNumbers(numbers);
-                break;
-            case "GAPFUL":
-                filteredNumbers = filterGapfulNumbers(numbers);
-                break;
-            case "SPY":
-                filteredNumbers = filterSpyNumbers(numbers);
-                break;
-//            case "SQUARE":
-//                foundNumbers = f(start, count);
-//                break;
-//            case "SUNNY":
-//                foundNumbers = findBuzzNumbers(start, count);
-//                break;
-            case "EVEN":
-                filteredNumbers = filterEvenNumbers(numbers);
-                break;
-            case "ODD":
-                filteredNumbers = filterOddNumbers(numbers);
-                break;
-            default:
-                filteredNumbers = null;
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> findBuzzNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> findDuckNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> findPalindromicNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> findGapfulNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> findSpyNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> findEvenNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> findOddNumbers(long start, long count) {
-        ArrayList<Long> foundNumbers = new ArrayList<>();
-
-        while (count > 0) {
-            if (!isEven(start)) {
-                foundNumbers.add(start);
-                count--;
-            }
-
-            start++;
-        }
-
-        return foundNumbers;
-    }
-
-    private static ArrayList<Long> filterBuzzNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (isBuzzNumber(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> filterDuckNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (isDuckNumber(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> filterPalindromicNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (isPalindrome(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> filterGapfulNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (isGapful(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> filterSpyNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (isSpy(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> filterEvenNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (isEven(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
-    }
-
-    private static ArrayList<Long> filterOddNumbers(ArrayList<Long> numbers) {
-        ArrayList<Long> filteredNumbers = new ArrayList<>();
-
-        for (long num : numbers) {
-            if (!isEven(num)) {
-                filteredNumbers.add(num);
-            }
-        }
-
-        return filteredNumbers;
+        return hasProperty;
     }
 }
