@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class Main {
 
     private static final String[] PROPERTIES = {
-            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "EVEN", "ODD"
+            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING", "EVEN", "ODD"
     };
 
     public static void main(String[] args) {
@@ -238,17 +238,21 @@ public class Main {
     }
 
     private static void displayProperties(long number) {
-        int displacement = 12;
         System.out.printf("Properties of %,d\n", number);
-        System.out.printf("%" + (displacement - "buzz".length()) + "sbuzz: %b\n", "", isBuzzNumber(number));
-        System.out.printf("%" + (displacement - "duck".length()) + "sduck: %b\n", "", isDuckNumber(number));
-        System.out.printf("%" + (displacement - "palindromic".length()) + "spalindromic: %b\n", "", isPalindrome(number));
-        System.out.printf("%" + (displacement - "gapful".length()) + "sgapful: %b\n", "", isGapful(number));
-        System.out.printf("%" + (displacement - "spy".length()) + "sspy: %b\n", "", isSpy(number));
-        System.out.printf("%" + (displacement - "square".length()) + "ssquare: %b\n", "", isPerfectSquare(number));
-        System.out.printf("%" + (displacement - "sunny".length()) + "ssunny: %b\n", "", isSunny(number));
-        System.out.printf("%" + (displacement - "even".length()) + "seven: %b\n", "", isEven(number));
-        System.out.printf("%" + (displacement - "odd".length()) + "sodd: %b\n", "", isOdd(number));
+        System.out.printf("%" + getDisplacement("buzz") + "sbuzz: %b\n", "", isBuzzNumber(number));
+        System.out.printf("%" + getDisplacement("duck") + "sduck: %b\n", "", isDuckNumber(number));
+        System.out.printf("%" + getDisplacement("palindromic") + "spalindromic: %b\n", "", isPalindrome(number));
+        System.out.printf("%" + getDisplacement("gapful") + "sgapful: %b\n", "", isGapful(number));
+        System.out.printf("%" + getDisplacement("spy") + "sspy: %b\n", "", isSpy(number));
+        System.out.printf("%" + getDisplacement("square") + "ssquare: %b\n", "", isPerfectSquare(number));
+        System.out.printf("%" + getDisplacement("sunny") + "ssunny: %b\n", "", isSunny(number));
+        System.out.printf("%" + getDisplacement("jumping") + "sjumping: %b\n", "", isJumping(number));
+        System.out.printf("%" + getDisplacement("even") + "seven: %b\n", "", isEven(number));
+        System.out.printf("%" + getDisplacement("odd") + "sodd: %b\n", "", isOdd(number));
+    }
+
+    private static int getDisplacement(String property) {
+        return 12 - property.length();
     }
 
     private static void displayPropertiesList(long number) {
@@ -286,6 +290,11 @@ public class Main {
         if (isSunny(number)) {
             addCommaIfRequired(description);
             description.append("sunny");
+        }
+
+        if (isJumping(number)) {
+            addCommaIfRequired(description);
+            description.append("jumping");
         }
 
         addCommaIfRequired(description);
@@ -421,6 +430,25 @@ public class Main {
         return isPerfectSquare(number + 1);
     }
 
+    private static boolean isJumping(long number) {
+        boolean jumping = true;
+        long digit1;
+        long digit2;
+
+        while (number / 10 > 0) {
+            digit1 = number % 10;
+            number /= 10;
+            digit2 = number % 10;
+
+            if (Math.abs(digit1 - digit2) != 1) {
+                jumping = false;
+                break;
+            }
+        }
+
+        return jumping;
+    }
+
     private static ArrayList<Long> findNumbersWithProperties(long start, int count, ArrayList<String> properties) {
         ArrayList<Long> foundNumbers = new ArrayList<>();
 
@@ -473,6 +501,9 @@ public class Main {
                 break;
             case "SUNNY":
                 hasProperty = isSunny(number);
+                break;
+            case "JUMPING":
+                hasProperty = isJumping(number);
                 break;
             case "EVEN":
                 hasProperty = isEven(number);
