@@ -100,55 +100,122 @@ public class Main {
 
     private static ArrayList<String> getSearchProperties(String[] searchParameters) {
         ArrayList<String> searchProperties = new ArrayList<>();
-        HashSet<String> conflicts = new HashSet<>();
+        HashSet<String> propertiesAdded = new HashSet<>();
 
         for (int i = 2; i < searchParameters.length; i++) {
-            String parameter = searchParameters[i].toUpperCase();
-
-            if (conflicts.contains(parameter)) {
-                searchProperties = null;
-                break;
+            String property = searchParameters[i].toUpperCase();
+            if (!propertiesAdded.contains(property)) {
+                searchProperties.add(property);
+                propertiesAdded.add(property);
             }
+        }
 
-            if (!propertyExists(parameter.replace("-", ""))) {
-                searchProperties = null;
-                break;
-            }
-
-            searchProperties.add(parameter);
-
-            conflicts.add(getConflict(parameter));
-            conflicts.add(getInverse(parameter));
+        if (!validateSearchProperties(searchProperties)) {
+            searchProperties = null;
         }
 
         return searchProperties;
     }
 
-    private static String getConflict(String property) {
-        String conflict = property.contains("-") ? "-" : "";
-        property = property.replace("-", "");
+    private static boolean validateSearchProperties(ArrayList<String> searchProperties) {
+        boolean isValid = true;
+        HashSet<String> conflicts = new HashSet<>();
+        HashSet<String> inverses = new HashSet<>();
 
-        if (property.equals("EVEN")) {
-            conflict += "ODD";
-        } else if (property.equals("ODD")) {
-            conflict += "EVEN";
-        } else if (property.equals("DUCK")) {
-            conflict += "SPY";
-        } else if (property.equals("SPY")) {
-            conflict += "DUCK";
-        } else if (property.equals("SUNNY")) {
-            conflict += "SQUARE";
-        } else if (property.equals("SQUARE")) {
-            conflict += "SUNNY";
-        } else if (property.equals("SAD")) {
-            conflict += "HAPPY";
-        } else if (property.equals("HAPPY")) {
-            conflict += "SAD";
-        } else {
-            conflict = null;
+        ArrayList<String> invalidProperties = new ArrayList<>();
+        ArrayList<String> mutuallyExclusiveClashes = new ArrayList<>();
+
+        for (String property : searchProperties) {
+            property = property.toUpperCase();
+
+            if (conflicts.contains(property)) {
+                mutuallyExclusiveClashes.add(property);
+                mutuallyExclusiveClashes.add(getConflict(property));
+                isValid = false;
+            }
+
+            if (inverses.contains(property)) {
+                mutuallyExclusiveClashes.add(property);
+                mutuallyExclusiveClashes.add(getInverse(property));
+                isValid = false;
+            }
+
+            if (!propertyExists(property.replace("-", ""))) {
+                invalidProperties.add(property);
+                isValid = false;
+            }
+
+            conflicts.add(getConflict(property));
+            inverses.add(getInverse(property));
         }
 
-        return conflict;
+        if (invalidProperties.size() > 0) {
+            provideInvalidPropertiesFeedback(invalidProperties);
+        }
+
+        if (mutuallyExclusiveClashes.size() > 0) {
+            provideMutuallyExclusiveClashesFeedback(mutuallyExclusiveClashes);
+        }
+
+        return isValid;
+    }
+
+    private static void provideInvalidPropertiesFeedback(ArrayList<String> invalidProperties) {
+        StringBuilder feedback = new StringBuilder("The propert");
+        feedback.append(invalidProperties.size() > 1 ? "ies" : "y").append(" [");
+
+        for (int i = 0; i < invalidProperties.size(); i++) {
+            if (i > 0) {
+                feedback.append(", ");
+            }
+            feedback.append(invalidProperties.get(i));
+        }
+
+        feedback.append("] ").append(invalidProperties.size() > 1 ? "are" : "is").append(" wrong.\n");
+        feedback.append("Available properties:");
+        Property[] availableProperties = Property.values();
+
+        for (int i = 0; i < availableProperties.length; i++) {
+            if (i > 0) {
+                feedback.append(", ");
+            }
+            feedback.append(availableProperties[i]);
+        }
+
+        feedback.append("]");
+
+        System.out.println(feedback);
+    }
+
+    private static void provideMutuallyExclusiveClashesFeedback(ArrayList<String> mutuallyExclusiveClashes) {
+        StringBuilder feedback = new StringBuilder("The request contains mutually exclusive properties: [");
+
+        for (int i = 0; i < mutuallyExclusiveClashes.size(); i++) {
+            if (i > 0) {
+                feedback.append(", ");
+            }
+            feedback.append(mutuallyExclusiveClashes.get(i));
+        }
+
+        feedback.append("]\nThere are no numbers with these properties.");
+
+        System.out.println(feedback);
+    }
+
+    private static String getConflict(String property) {
+        return switch (property) {
+            case "EVEN" -> "ODD";
+            case "ODD" -> "EVEN";
+            case "-EVEN" -> "-ODD";
+            case "-ODD" -> "-EVEN";
+            case "DUCK" -> "SPY";
+            case "SPY" -> "DUCK";
+            case "SUNNY" -> "SQUARE";
+            case "SQUARE" -> "SUNNY";
+            case "SAD" -> "HAPPY";
+            case "HAPPY" -> "SAD";
+            default -> null;
+        };
     }
 
     private static String getInverse(String property) {
