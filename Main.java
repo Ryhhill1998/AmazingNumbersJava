@@ -1,11 +1,15 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Scanner;
 
 public class Main {
 
     private static final String[] PROPERTIES = {
-            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING", "EVEN", "ODD"
+            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE",
+            "SUNNY", "HAPPY", "SAD", "JUMPING", "EVEN", "ODD",
+            "-BUZZ", "-DUCK", "-PALINDROMIC", "-GAPFUL", "-SPY", "-SQUARE",
+            "-SUNNY", "-HAPPY", "-SAD", "-JUMPING", "-EVEN", "-ODD"
     };
 
     public static void main(String[] args) {
@@ -126,12 +130,24 @@ public class Main {
         return parameters.contains("EVEN") && parameters.contains("ODD");
     }
 
+    private static boolean searchContainsNotEvenAndNotOdd(ArrayList<String> parameters) {
+        return parameters.contains("-EVEN") && parameters.contains("-ODD");
+    }
+
     private static boolean searchContainsDuckAndSpy(ArrayList<String> parameters) {
         return parameters.contains("DUCK") && parameters.contains("SPY");
     }
 
+    private static boolean searchContainsNotDuckAndNotSpy(ArrayList<String> parameters) {
+        return parameters.contains("-DUCK") && parameters.contains("-SPY");
+    }
+
     private static boolean searchContainsSquareAndSunny(ArrayList<String> parameters) {
         return parameters.contains("SUNNY") && parameters.contains("SQUARE");
+    }
+
+    private static boolean searchContainsNotSquareAndNotSunny(ArrayList<String> parameters) {
+        return parameters.contains("-SUNNY") && parameters.contains("-SQUARE");
     }
 
     private static boolean searchHasMutuallyExclusiveParameters(ArrayList<String> parameters) {
@@ -141,12 +157,24 @@ public class Main {
             System.out.println("The request contains mutually exclusive properties: [EVEN, ODD]");
             System.out.println("There are no numbers with these properties.");
             hasMutuallyExclusiveParameters = true;
+        } else if (searchContainsNotEvenAndNotOdd(parameters)) {
+            System.out.println("The request contains mutually exclusive properties: [-EVEN, -ODD]");
+            System.out.println("There are no numbers with these properties.");
+            hasMutuallyExclusiveParameters = true;
         } else if (searchContainsDuckAndSpy(parameters)) {
             System.out.println("The request contains mutually exclusive properties: [DUCK, SPY]");
             System.out.println("There are no numbers with these properties.");
             hasMutuallyExclusiveParameters = true;
+        } else if (searchContainsNotDuckAndNotSpy(parameters)) {
+            System.out.println("The request contains mutually exclusive properties: [-DUCK, -SPY]");
+            System.out.println("There are no numbers with these properties.");
+            hasMutuallyExclusiveParameters = true;
         } else if (searchContainsSquareAndSunny(parameters)) {
             System.out.println("The request contains mutually exclusive properties: [SQUARE, SUNNY]");
+            System.out.println("There are no numbers with these properties.");
+            hasMutuallyExclusiveParameters = true;
+        } else if (searchContainsNotSquareAndNotSunny(parameters)) {
+            System.out.println("The request contains mutually exclusive properties: [-SQUARE, -SUNNY]");
             System.out.println("There are no numbers with these properties.");
             hasMutuallyExclusiveParameters = true;
         }
@@ -247,6 +275,8 @@ public class Main {
         System.out.printf("%" + getDisplacement("square") + "ssquare: %b\n", "", isPerfectSquare(number));
         System.out.printf("%" + getDisplacement("sunny") + "ssunny: %b\n", "", isSunny(number));
         System.out.printf("%" + getDisplacement("jumping") + "sjumping: %b\n", "", isJumping(number));
+        System.out.printf("%" + getDisplacement("happy") + "shappy: %b\n", "", isHappy(number));
+        System.out.printf("%" + getDisplacement("sad") + "ssad: %b\n", "", isSad(number));
         System.out.printf("%" + getDisplacement("even") + "seven: %b\n", "", isEven(number));
         System.out.printf("%" + getDisplacement("odd") + "sodd: %b\n", "", isOdd(number));
     }
@@ -295,6 +325,16 @@ public class Main {
         if (isJumping(number)) {
             addCommaIfRequired(description);
             description.append("jumping");
+        }
+
+        if (isHappy(number)) {
+            addCommaIfRequired(description);
+            description.append("happy");
+        }
+
+        if (isSad(number)) {
+            addCommaIfRequired(description);
+            description.append("sad");
         }
 
         addCommaIfRequired(description);
@@ -451,8 +491,7 @@ public class Main {
 
     private static boolean isHappy(long number) {
         boolean happy = false;
-        long originalNumber = number;
-        int iterations = 0;
+        HashSet<Long> numbersProcessed = new HashSet<>();
         long digitSum, digit;
 
         while (true) {
@@ -461,8 +500,10 @@ public class Main {
                 break;
             }
 
-            if (iterations > 0 && number == originalNumber) {
+            if (numbersProcessed.contains(number)) {
                 break;
+            } else {
+                numbersProcessed.add(number);
             }
 
             digitSum = 0;
@@ -474,10 +515,13 @@ public class Main {
             }
 
             number = digitSum;
-            iterations++;
         }
 
         return happy;
+    }
+
+    private static boolean isSad(long number) {
+        return !isHappy(number);
     }
 
     private static ArrayList<Long> findNumbersWithProperties(long start, int count, ArrayList<String> properties) {
@@ -499,7 +543,13 @@ public class Main {
         boolean hasAllProperties = true;
 
         for (int i = 0; i < properties.size(); i++) {
-            if (!numberHasProperty(number, properties.get(i))) {
+            String property = properties.get(i);
+            if (property.contains("-")) {
+                if (numberHasProperty(number, property.replace("-", ""))) {
+                    hasAllProperties = false;
+                    break;
+                }
+            } else if (!numberHasProperty(number, property)) {
                 hasAllProperties = false;
                 break;
             }
@@ -535,6 +585,12 @@ public class Main {
                 break;
             case "JUMPING":
                 hasProperty = isJumping(number);
+                break;
+            case "HAPPY":
+                hasProperty = isHappy(number);
+                break;
+            case "SAD":
+                hasProperty = isSad(number);
                 break;
             case "EVEN":
                 hasProperty = isEven(number);
