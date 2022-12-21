@@ -449,6 +449,37 @@ public class Main {
         return jumping;
     }
 
+    private static boolean isHappy(long number) {
+        boolean happy = false;
+        long originalNumber = number;
+        int iterations = 0;
+        long digitSum, digit;
+
+        while (true) {
+            if (number == 1) {
+                happy = true;
+                break;
+            }
+
+            if (iterations > 0 && number == originalNumber) {
+                break;
+            }
+
+            digitSum = 0;
+
+            while (number > 0) {
+                digit = number % 10;
+                digitSum += Math.pow(digit, 2);
+                number /= 10;
+            }
+
+            number = digitSum;
+            iterations++;
+        }
+
+        return happy;
+    }
+
     private static ArrayList<Long> findNumbersWithProperties(long start, int count, ArrayList<String> properties) {
         ArrayList<Long> foundNumbers = new ArrayList<>();
 
