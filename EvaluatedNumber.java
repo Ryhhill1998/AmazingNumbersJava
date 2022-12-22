@@ -68,48 +68,20 @@ public class EvaluatedNumber {
     }
 
     private boolean numberHasProperty(Property p) {
-        boolean hasProperty = false;
-
-        switch (p) {
-            case BUZZ:
-                hasProperty = isBuzzNumber(value);
-                break;
-            case DUCK:
-                hasProperty = isDuckNumber(value);
-                break;
-            case PALINDROMIC:
-                hasProperty = isPalindrome(value);
-                break;
-            case GAPFUL:
-                hasProperty = isGapful(value);
-                break;
-            case SPY:
-                hasProperty = isSpy(value);
-                break;
-            case SQUARE:
-                hasProperty = isPerfectSquare(value);
-                break;
-            case SUNNY:
-                hasProperty = isSunny(value);
-                break;
-            case HAPPY:
-                hasProperty = isHappy(value);
-                break;
-            case SAD:
-                hasProperty = isSad(value);
-                break;
-            case JUMPING:
-                hasProperty = isJumping(value);
-                break;
-            case EVEN:
-                hasProperty = isEven(value);
-                break;
-            case ODD:
-                hasProperty = isOdd(value);
-                break;
-        }
-
-        return hasProperty;
+        return switch (p) {
+            case BUZZ -> isBuzzNumber(value);
+            case DUCK -> isDuckNumber(value);
+            case PALINDROMIC -> isPalindrome(value);
+            case GAPFUL -> isGapful(value);
+            case SPY -> isSpy(value);
+            case SQUARE -> isPerfectSquare(value);
+            case SUNNY -> isSunny(value);
+            case HAPPY -> isHappy(value);
+            case SAD -> isSad(value);
+            case JUMPING -> isJumping(value);
+            case EVEN -> isEven(value);
+            case ODD -> isOdd(value);
+        };
     }
 
     private static boolean isEven(long number) {
